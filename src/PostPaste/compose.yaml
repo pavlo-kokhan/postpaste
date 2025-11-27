@@ -1,0 +1,21 @@
+﻿services:
+  postpaste.postgres:
+    image: postgres:latest
+    container_name: PostPaste.Postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SuperPassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    
+  postpaste.papercut:
+    image: changemakerstudiosus/papercut-smtp:latest
+    container_name: PostPaste.Papercut
+    ports:
+      - "8080:8080"
+      - "2525:2525"
+    
+volumes:
+  postgres_data:
