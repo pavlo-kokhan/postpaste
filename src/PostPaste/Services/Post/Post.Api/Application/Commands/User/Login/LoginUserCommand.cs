@@ -1,11 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authentication.BearerToken;
-using Post.Api.Application.Constants.Errors;
 using Post.Api.Application.Services.Abstract;
-using Shared.Result.Results;
 using Shared.Result.Results.Generic;
 
-namespace Post.Api.Application.Commands.User;
+namespace Post.Api.Application.Commands.User.Login;
 
 public record LoginUserCommand(string Email, string Password) : IRequest<Result<AccessTokenResponse>>
 {

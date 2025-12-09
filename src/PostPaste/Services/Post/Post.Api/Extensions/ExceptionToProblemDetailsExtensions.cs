@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Result.Results;
 
 namespace Post.Api.Extensions;
 
@@ -12,9 +13,11 @@ public static class ExceptionToProblemDetailsExtensions
             Type = "https://httpstatuses.io/500",
             Extensions = new Dictionary<string, object?>
             {
-                ["errors"] = new Dictionary<string, string?[]>
+                ["errors"] = new[]
                 {
-                    { "Exception messages", [includeExceptionDetails ? exception.Message : null] }
+                    Error.CreateUnknownError(
+                        "INTERNAL_SERVER_ERROR",
+                        includeExceptionDetails ? exception.Message : "Unknown error")
                 }
             }
         };

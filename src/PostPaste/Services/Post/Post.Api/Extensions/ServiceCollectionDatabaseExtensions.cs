@@ -1,8 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
+using Post.Domain;
+using Post.Domain.Entities.Post;
+using Post.Domain.Entities.PostFolder;
+using Post.Domain.Entities.User;
 using Post.Infrastructure;
 using Post.Infrastructure.Persistence;
+using Post.Infrastructure.Persistence.Repositories;
 
 namespace Post.Api.Extensions;
 
@@ -28,7 +33,10 @@ public static class ServiceCollectionDatabaseExtensions
             })
             .AddScoped<DatabaseSeeder>();
 
-    // todo: add repositories
     public static IServiceCollection AddRepositories(this IServiceCollection services)
-        => services;
+        => services
+            .AddScoped<IUnitOfWork, UnitOfWork>()
+            .AddScoped<IPostRepository, PostRepository>()
+            .AddScoped<IPostFolderRepository, PostFolderRepository>()
+            .AddScoped<IUserRepository, UserRepository>();
 }

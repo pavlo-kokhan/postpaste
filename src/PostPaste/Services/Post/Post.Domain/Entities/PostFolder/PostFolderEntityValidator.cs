@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Post.Domain.ValidationExtensions;
 
 namespace Post.Domain.Entities.PostFolder;
 
@@ -6,6 +7,10 @@ public class PostFolderEntityValidator : AbstractValidator<PostFolderEntity>
 {
     public PostFolderEntityValidator()
     {
-        // todo: add validation rules
+        RuleFor(x => x.Name)
+            .PostFolderName();
+        
+        RuleFor(x => x.OwnerId)
+            .RequiredId();
     }
 }

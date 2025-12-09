@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using Post.Domain;
+using Post.Domain.ValidationExtensions;
 
-namespace Post.Api.Application.Commands.User;
+namespace Post.Api.Application.Commands.User.Register;
 
 public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {

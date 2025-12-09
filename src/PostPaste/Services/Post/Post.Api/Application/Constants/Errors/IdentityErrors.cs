@@ -17,8 +17,4 @@ public static class IdentityErrors
     public static readonly Error UserConfirmationFailed = Error.Create("USER_CONFIRMATION_FAILED");
     
     public static readonly Error EmailNotConfirmed = Error.Create("EMAIL_NOT_CONFIRMED");
-    
-    public static readonly Error UserPasswordRemovalFailed = Error.Create("USER_PASSWORD_REMOVAL_FAILED");
-    
-    public static readonly Error UserPasswordAdditionFailed = Error.Create("USER_PASSWORD_ADDITION_FAILED");
 }

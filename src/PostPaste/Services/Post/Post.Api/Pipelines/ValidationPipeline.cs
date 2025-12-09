@@ -28,13 +28,11 @@ public class ValidationPipeline<TRequest> : IPipelineBehavior<TRequest, Result>
             return Result.Failure(
                 ResultStatus.ValidationError,
                 validationResult.Errors
-                    .DistinctBy(e => e.ErrorCode)
-                    .ToDictionary(
-                        e => e.ErrorCode,
-                        e => Error.CreatePropertyValidationError(
-                            e.ErrorCode,
-                            e.PropertyName,
-                            e.ErrorMessage)));
+                    .Select(e => Error.CreatePropertyValidationError(
+                        e.ErrorCode,
+                        e.PropertyName,
+                        e.ErrorMessage))
+                    .ToList());
         
         return await next(cancellationToken);
     }

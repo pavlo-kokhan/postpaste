@@ -1,6 +1,6 @@
 ﻿namespace Post.Domain.Entities.Abstract;
 
-public class Entity
+public class Entity : IEntity
 {
-    public long Id { get; private set; }
+    public int Id { get; private set; }
 }

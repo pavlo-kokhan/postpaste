@@ -3,6 +3,10 @@ using Azure.Storage.Blobs;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Azure;
+using Post.Api.Application.BackgroundServices;
+using Post.Api.Application.BusinessRules;
+using Post.Api.Application.BusinessRules.Abstract;
 using Post.Api.Application.Options;
 using Post.Api.Application.Services;
 using Post.Api.Application.Services.Abstract;
@@ -54,21 +58,25 @@ public static class ServiceCollectionExtensions
                 configuration.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
                 configuration.Lifetime = ServiceLifetime.Scoped;
             });
-    
-    public static IServiceCollection AddAzureBlobStorage(this IServiceCollection services, IConfiguration configuration)
-        => services
-            .AddSingleton(_ =>
-            {
-                var connectionString = configuration["AzureStorage:ConnectionString"];
 
-                return new BlobServiceClient(connectionString);
-            })
-            .AddSingleton(sp =>
-            {
-                var blobServiceClient = sp.GetRequiredService<BlobServiceClient>();
-                
-                return blobServiceClient.GetBlobContainerClient(configuration["AzureStorage:PostsContainerName"]);
-            });
+    public static IServiceCollection AddAzureBlobStorage(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddAzureClients(clientBuilder => 
+        {
+            clientBuilder.AddBlobServiceClient(configuration["AzureStorage:ConnectionString"]); 
+        });
+        
+        services.Configure<AzureStorageOptions>(cfg =>
+        {
+            cfg.PostsContainerName = configuration["AzureStorage:ContainerNames:Posts"]!;
+        });
+        
+        return services;
+    }
+    
+    public static IServiceCollection AddBlobContainerManager(this IServiceCollection services)
+        => services
+            .AddScoped<IBlobContainerManager, BlobContainerManager>();
 
     public static IServiceCollection AddFluentEmail(this IServiceCollection services, IConfiguration configuration)
         => services
@@ -78,6 +86,7 @@ public static class ServiceCollectionExtensions
     
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         => services
+            .AddScoped<IUserAccessor, UserAccessor>()
             .AddSingleton<IPasswordProtector, Argon2PasswordProtector>()
             .Configure<PasswordHashingOptions>(options =>
             {
@@ -87,13 +96,24 @@ public static class ServiceCollectionExtensions
                 options.HashLength = configuration.GetValue<int>("PasswordHashing:HashLength");
                 options.SaltLength = configuration.GetValue<int>("PasswordHashing:SaltLength");
             })
-            .AddSingleton<IBlobStorageService, BlobStorageService>()
+            .AddSingleton<IPostsStorageService, PostsStorageService>()
             .AddScoped<IIdentityService, IdentityService>()
-            .Configure<EmailingUrlsOptions>(options =>
+            .Configure<EmailUrlsOptions>(options =>
             {
                 options.EmailConfirmationBaseUrl = configuration["EmailUrls:EmailConfirmationBaseUrl"]!;
                 options.LoginBaseUrl = configuration["EmailUrls:LoginBaseUrl"]!;
             })
             .AddScoped<IEmailService, SmtpEmailService>()
-            .AddScoped<IJwtTokenService, JwtTokenService>();
+            .AddScoped<IJwtTokenService, JwtTokenService>()
+            .AddBusinessRules();
+    
+    public static IServiceCollection AddHostedServices(this IServiceCollection services)
+        => services
+            .AddHostedService<InitialBackgroundService>();
+    
+    private static IServiceCollection AddBusinessRules(this IServiceCollection services)
+        => services
+            .AddScoped<IBusinessRuleValidator<ConfirmedUserRule>, ConfirmedUserRule.Validator>()
+            .AddScoped<IBusinessRuleValidator<UniqueFolderNameRule>, UniqueFolderNameRule.Validator>()
+            .AddScoped<IBusinessRuleValidator<PostFolderExistsRule>, PostFolderExistsRule.Validator>();
 }

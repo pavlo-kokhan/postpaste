@@ -1,4 +1,5 @@
 using FluentValidation;
+using Post.Domain.ValidationExtensions;
 
 namespace Post.Domain.Entities.Post;
 
@@ -6,17 +7,23 @@ public class PostEntityValidator : AbstractValidator<PostEntity>
 {
     public PostEntityValidator(IValidator<PostCategoryValueObject> categoryValidator)
     {
-        // todo: add validation rules
-        
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MaximumLength(50);
+            .PostName();
         
         RuleFor(x => x.Category)
             .NotEmpty()
             .SetValidator(categoryValidator);
         
+        RuleFor(x => x.Tags)
+            .Tags();
+        
         RuleFor(x => x.ExpirationDate)
-            .Must(x => x is not null || x >= DateTime.UtcNow);
+            .OptionalExpirationDate(x => x.ExpirationDate);
+        
+        RuleFor(x => x.OwnerId)
+            .RequiredId();
+        
+        RuleFor(x => x.FolderId)
+            .Id(x => x.FolderId);
     }
 }

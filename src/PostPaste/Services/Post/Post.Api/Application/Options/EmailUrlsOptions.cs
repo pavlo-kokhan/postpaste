@@ -1,6 +1,6 @@
 ﻿namespace Post.Api.Application.Options;
 
-public class EmailingUrlsOptions
+public class EmailUrlsOptions
 {
     public required string EmailConfirmationBaseUrl { get; set; }
     

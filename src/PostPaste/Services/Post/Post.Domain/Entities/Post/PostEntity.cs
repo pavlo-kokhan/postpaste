@@ -1,10 +1,11 @@
-﻿using FluentValidation;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluentValidation;
 using Post.Domain.Entities.Abstract;
+using Post.Domain.ValidationExtensions;
 using Shared.Result.Results.Generic;
 
 namespace Post.Domain.Entities.Post;
 
-// todo: implement and configure entity
 public class PostEntity : PersistenceEntity
 {
     private static readonly IValidator<PostEntity> Validator = new PostEntityValidator(
@@ -19,8 +20,8 @@ public class PostEntity : PersistenceEntity
         DateTime? expirationDate,
         string shortCode,
         string blobKey,
-        long ownerId,
-        long? folderId)
+        int ownerId,
+        int? folderId)
     {
         Name = name;
         Category = category;
@@ -32,6 +33,8 @@ public class PostEntity : PersistenceEntity
         BlobKey = blobKey;
         OwnerId = ownerId;
         FolderId = folderId;
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -49,7 +52,8 @@ public class PostEntity : PersistenceEntity
     
     public string? PasswordSalt { get; private set; }
     
-    public bool IsProtected => PasswordHash is not null;
+    [MemberNotNullWhen(true, nameof(PasswordHash), nameof(PasswordSalt))]
+    public bool IsProtected => PasswordHash is not null && PasswordSalt is not null;
     
     public DateTime? ExpirationDate { get; private set; }
     
@@ -57,9 +61,9 @@ public class PostEntity : PersistenceEntity
     
     public string BlobKey { get; private set; }
     
-    public long OwnerId { get; private set; }
+    public int OwnerId { get; private set; }
     
-    public long? FolderId { get; private set; }
+    public int? FolderId { get; private set; }
 
     public static Result<PostEntity> Create(
         string name,
@@ -70,8 +74,8 @@ public class PostEntity : PersistenceEntity
         DateTime? expirationDate,
         string shortCode,
         string blobKey,
-        long ownerId,
-        long? folderId) 
+        int ownerId,
+        int? folderId) 
         => Validator.ToResult(
                 new PostEntity(
                     name,
@@ -94,8 +98,8 @@ public class PostEntity : PersistenceEntity
         DateTime? expirationDate,
         string shortCode,
         string blobKey,
-        long ownerId,
-        long? folderId)
+        int ownerId,
+        int? folderId)
     {
         Name = name;
         Category = category;
@@ -107,6 +111,7 @@ public class PostEntity : PersistenceEntity
         BlobKey = blobKey;
         OwnerId = ownerId;
         FolderId = folderId;
+        UpdatedAt = DateTime.UtcNow;
 
         return Validator.ToResult(this);
     }

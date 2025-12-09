@@ -1,7 +1,8 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Post.Api.Application.Commands.User;
+using Post.Api.Application.Commands.User.ConfirmEmail;
+using Post.Api.Application.Commands.User.Login;
+using Post.Api.Application.Commands.User.Register;
 using Post.Api.Extensions;
 
 namespace Post.Api.Controllers;

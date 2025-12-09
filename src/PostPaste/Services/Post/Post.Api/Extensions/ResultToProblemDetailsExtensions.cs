@@ -21,11 +21,6 @@ public static class ResultToProblemDetailsExtensions
             Extensions = new Dictionary<string, object?>
             {
                 ["errors"] = result.Errors
-                    .ToDictionary(
-                        e => e.Key, 
-                        e => new ErrorResponse(
-                            e.Value.Message, 
-                            e.Value.PropertyName))
             }
         };
     }

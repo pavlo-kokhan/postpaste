@@ -8,5 +8,5 @@ public interface IResult
     
     public ResultStatus Status { get; }
     
-    public IDictionary<string, Error> Errors { get; }
+    public IReadOnlyCollection<Error> Errors { get; }
 }

@@ -18,18 +18,18 @@ public class IdentityService : IIdentityService
     private readonly UserManager<UserEntity> _userManager;
     private readonly IEmailService _emailService;
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly EmailingUrlsOptions _emailingUrlsOptions;
+    private readonly EmailUrlsOptions _emailUrlsOptions;
 
     public IdentityService(
         UserManager<UserEntity> userManager, 
         IEmailService emailService,
         IJwtTokenService jwtTokenService,
-        IOptions<EmailingUrlsOptions> emailConfirmationOptions)
+        IOptions<EmailUrlsOptions> emailConfirmationOptions)
     {
         _userManager = userManager;
         _emailService = emailService;
         _jwtTokenService = jwtTokenService;
-        _emailingUrlsOptions = emailConfirmationOptions.Value;
+        _emailUrlsOptions = emailConfirmationOptions.Value;
     }
 
     public async Task<Result> RegisterUserAsync(
@@ -98,7 +98,7 @@ public class IdentityService : IIdentityService
         
         return !result.Succeeded 
             ? Result<string>.ValidationFailure(IdentityErrors.UserConfirmationFailed) 
-            : _emailingUrlsOptions.LoginBaseUrl;
+            : _emailUrlsOptions.LoginBaseUrl;
     }
 
     private async Task<string> GenerateEmailConfirmationUrl(UserEntity userEntity)
@@ -112,6 +112,6 @@ public class IdentityService : IIdentityService
             { "token", encodedConfirmationToken }
         };
         
-        return QueryHelpers.AddQueryString(_emailingUrlsOptions.EmailConfirmationBaseUrl, queryParameters!);
+        return QueryHelpers.AddQueryString(_emailUrlsOptions.EmailConfirmationBaseUrl, queryParameters!);
     }
 }

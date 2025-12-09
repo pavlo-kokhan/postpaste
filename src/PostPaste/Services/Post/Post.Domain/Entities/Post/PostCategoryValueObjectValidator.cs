@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Post.Domain.ValidationExtensions;
 
 namespace Post.Domain.Entities.Post;
 
@@ -6,6 +7,7 @@ public class PostCategoryValueObjectValidator : AbstractValidator<PostCategoryVa
 {
     public PostCategoryValueObjectValidator()
     {
-        // todo: add validation rules
+        RuleFor(x => x.Name)
+            .PostCategoryName();
     }
 }

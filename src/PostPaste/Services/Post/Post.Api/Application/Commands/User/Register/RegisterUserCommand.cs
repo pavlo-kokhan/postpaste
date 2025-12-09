@@ -2,7 +2,7 @@
 using Post.Api.Application.Services.Abstract;
 using Shared.Result.Results;
 
-namespace Post.Api.Application.Commands.User;
+namespace Post.Api.Application.Commands.User.Register;
 
 public record RegisterUserCommand(string Email, string Password) : IRequest<Result>
 {
