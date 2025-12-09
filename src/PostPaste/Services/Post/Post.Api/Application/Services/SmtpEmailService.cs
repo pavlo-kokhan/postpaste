@@ -1,9 +1,5 @@
-﻿using System.Net;
-using System.Net.Mail;
-using FluentEmail.Core;
-using Microsoft.Extensions.Options;
+﻿using FluentEmail.Core;
 using Post.Api.Application.Constants.Errors;
-using Post.Api.Application.Options;
 using Post.Api.Application.Services.Abstract;
 using Shared.Result.Results;
 
@@ -26,7 +22,7 @@ public class SmtpEmailService : IEmailService
                       <body>
                         <h1>You are one step away from confirming your email!</h1>
                         <p>Confirm your email using this url:</p>
-                        <p><a href="{confirmationUrl}">Confirm Email</a></p>
+                        <p><a href="{confirmationUrl}">{confirmationUrl}</a></p>
                         <p>If you did not register, simply ignore this email.</p>
                       </body>
                     </html>

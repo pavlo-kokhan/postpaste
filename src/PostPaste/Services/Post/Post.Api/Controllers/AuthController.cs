@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Post.Api.Application.Commands.User.ChangePassword;
 using Post.Api.Application.Commands.User.ConfirmEmail;
 using Post.Api.Application.Commands.User.Login;
 using Post.Api.Application.Commands.User.Register;
+using Post.Api.Application.Commands.User.ResendConfirmationEmail;
 using Post.Api.Extensions;
 
 namespace Post.Api.Controllers;
@@ -20,11 +22,19 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RegisterUserAsync(RegisterUserCommand request, CancellationToken cancellationToken)
         => (await _mediator.Send(request, cancellationToken)).ToActionResultWrapper();
     
+    [HttpPost("resend-confirmation-email")]
+    public async Task<IActionResult> ResendConfirmationEmailAsync(ResendUserConfirmationEmailCommand request, CancellationToken cancellationToken)
+        => (await _mediator.Send(request, cancellationToken)).ToActionResultWrapper();
+    
     [HttpPost("confirm-email")]
     public async Task<IActionResult> ConfirmUserEmailAsync(int id, string token, CancellationToken cancellationToken)
         => (await _mediator.Send(new ConfirmUserEmailCommand(id, token), cancellationToken)).ToActionResultWrapper();
 
     [HttpPost("login")]
     public async Task<IActionResult> LoginUserAsync(LoginUserCommand request, CancellationToken cancellationToken)
+        => (await _mediator.Send(request, cancellationToken)).ToActionResultWrapper();
+    
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangeUserPasswordAsync(ChangeUserPasswordCommand request, CancellationToken cancellationToken)
         => (await _mediator.Send(request, cancellationToken)).ToActionResultWrapper();
 }

@@ -53,9 +53,32 @@ public class IdentityService : IIdentityService
         if (!roleAssignmentResult.Succeeded)
             return Result.ValidationFailure(IdentityErrors.RoleAssignmentFailed);
 
-        var callbackUrl = await GenerateEmailConfirmationUrl(userEntity);
+        var callbackUrl = await GenerateEmailConfirmationUrlAsync(userEntity);
         
         await _emailService.SendUserRegistrationConfirmationEmailAsync(userEntity.Email, callbackUrl, cancellationToken);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> ResendConfirmationEmailAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        var userEntity = await _userManager.FindByEmailAsync(email);
+        
+        if (userEntity is null)
+            return Result.ValidationFailure(IdentityErrors.UserNotFound);
+        
+        if (!await _userManager.CheckPasswordAsync(userEntity, password))
+            return Result.ValidationFailure(IdentityErrors.InvalidPassword);
+
+        if (await _userManager.IsEmailConfirmedAsync(userEntity))
+            return Result.ValidationFailure(IdentityErrors.EmailAlreadyConfirmed);
+
+        var callbackUrl = await GenerateEmailConfirmationUrlAsync(userEntity);
+        
+        await _emailService.SendUserRegistrationConfirmationEmailAsync(email, callbackUrl, cancellationToken);
 
         return Result.Success();
     }
@@ -81,6 +104,27 @@ public class IdentityService : IIdentityService
         return await _jwtTokenService.GenerateAccessTokenAsync(userEntity, cancellationToken);
     }
 
+    public async Task<Result> ChangePasswordAsync(
+        string email,
+        string oldPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        var userEntity = await _userManager.FindByEmailAsync(email);
+        
+        if (userEntity is null)
+            return Result.ValidationFailure(IdentityErrors.UserNotFound);
+        
+        if (!await _userManager.CheckPasswordAsync(userEntity, oldPassword))
+            return Result.ValidationFailure(IdentityErrors.InvalidPassword);
+        
+        var result = await _userManager.ChangePasswordAsync(userEntity, oldPassword, newPassword);
+        
+        return !result.Succeeded 
+            ? Result.ValidationFailure(IdentityErrors.PasswordChangeFailed) 
+            : Result.Success();
+    }
+
     public async Task<Result<string>> ConfirmUserEmailAsync(
         int id, 
         string token, 
@@ -101,7 +145,7 @@ public class IdentityService : IIdentityService
             : _emailUrlsOptions.LoginBaseUrl;
     }
 
-    private async Task<string> GenerateEmailConfirmationUrl(UserEntity userEntity)
+    private async Task<string> GenerateEmailConfirmationUrlAsync(UserEntity userEntity)
     {
         var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
         var encodedConfirmationToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));

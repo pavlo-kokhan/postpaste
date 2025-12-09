@@ -10,8 +10,6 @@
     <ItemGroup>
       <Folder Include="Application\Commands\Post\Delete\" />
       <Folder Include="Application\Commands\Post\Update\" />
-      <Folder Include="Constants\" />
-      <Folder Include="Middlewares\" />
     </ItemGroup>
 
     <ItemGroup>
