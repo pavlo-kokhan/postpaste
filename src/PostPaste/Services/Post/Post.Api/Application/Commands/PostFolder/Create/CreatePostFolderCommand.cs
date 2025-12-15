@@ -15,18 +15,15 @@ public record CreatePostFolderCommand(string Name) : IRequest<Result>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserAccessor _userAccessor;
-        private readonly IBusinessRuleValidator<ConfirmedUserRule> _confirmedUserValidator;
         private readonly IBusinessRuleValidator<UniqueFolderNameRule> _uniqueFolderNameValidator;
 
         public Hadler(
             IUnitOfWork unitOfWork, 
             IUserAccessor userAccessor,
-            IBusinessRuleValidator<ConfirmedUserRule> confirmedUserValidator, 
             IBusinessRuleValidator<UniqueFolderNameRule> uniqueFolderNameValidator)
         {
             _unitOfWork = unitOfWork;
             _userAccessor = userAccessor;
-            _confirmedUserValidator = confirmedUserValidator;
             _uniqueFolderNameValidator = uniqueFolderNameValidator;
         }
 
@@ -36,9 +33,6 @@ public record CreatePostFolderCommand(string Name) : IRequest<Result>
 
             if (!userId.HasValue)
                 return Result.ValidationFailure(IdentityErrors.UserNotFound);
-            
-            if (await _confirmedUserValidator.IsBrokenAsync(new ConfirmedUserRule(userId.Value), cancellationToken))
-                return Result.ValidationFailure(_confirmedUserValidator.Error);
             
             if (await _uniqueFolderNameValidator.IsBrokenAsync(new UniqueFolderNameRule(request.Name, userId.Value), cancellationToken))
                 return Result.ValidationFailure(_uniqueFolderNameValidator.Error);

@@ -13,5 +13,5 @@ public record PostResponseDto(
     bool IsProtected,
     DateTime? ExpirationDate,
     string Content,
-    ShortUserResponseDto User,
+    ShortUserResponseDto? User,
     ShortPostFolderResponseDto? Folder) : TimeRelatedResponseDto;

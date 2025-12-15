@@ -1,3 +1,7 @@
-﻿namespace Post.Api.Application.Responses.PostFolder;
+﻿using Post.Api.Application.Responses.Common;
 
-public record ShortPostFolderResponseDto(int Id, string Name);
+namespace Post.Api.Application.Responses.PostFolder;
+
+public record ShortPostFolderResponseDto(
+    int Id, 
+    string Name) : TimeRelatedResponseDto;

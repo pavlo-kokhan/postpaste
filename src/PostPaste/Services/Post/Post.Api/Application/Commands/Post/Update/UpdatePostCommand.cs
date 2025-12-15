@@ -7,9 +7,10 @@ using Post.Domain;
 using Post.Domain.Entities.Post;
 using Shared.Result.Results;
 
-namespace Post.Api.Application.Commands.Post.Create;
+namespace Post.Api.Application.Commands.Post.Update;
 
-public record CreatePostCommand(
+public record UpdatePostCommand(
+    int Id,
     string Name,
     PostCategoryValueObject Category,
     IReadOnlyCollection<string> Tags,
@@ -18,22 +19,25 @@ public record CreatePostCommand(
     DateTime? ExpirationDate,
     int? FolderId) : IRequest<Result>
 {
-    public class Handler : IRequestHandler<CreatePostCommand, Result>
+    public class Handler : IRequestHandler<UpdatePostCommand, Result>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserAccessor _userAccessor;
         private readonly IPostsStorageService _storageService;
         private readonly IPasswordProtector _passwordProtector;
         private readonly IBlobKeyService _blobKeyService;
+
         private readonly IBusinessRuleValidator<PostFolderExistsRule> _postFolderExistsRuleValidator;
+        private readonly IBusinessRuleValidator<PostOwnedByUserRule> _postOwnedByUserRuleValidator;
 
         public Handler(
-            IUnitOfWork unitOfWork, 
+            IUnitOfWork unitOfWork,
             IUserAccessor userAccessor,
             IPostsStorageService storageService,
             IPasswordProtector passwordProtector,
             IBlobKeyService blobKeyService,
-            IBusinessRuleValidator<PostFolderExistsRule> postFolderExistsRuleValidator)
+            IBusinessRuleValidator<PostFolderExistsRule> postFolderExistsRuleValidator, 
+            IBusinessRuleValidator<PostOwnedByUserRule> postOwnedByUserRuleValidator)
         {
             _unitOfWork = unitOfWork;
             _userAccessor = userAccessor;
@@ -41,52 +45,66 @@ public record CreatePostCommand(
             _passwordProtector = passwordProtector;
             _blobKeyService = blobKeyService;
             _postFolderExistsRuleValidator = postFolderExistsRuleValidator;
+            _postOwnedByUserRuleValidator = postOwnedByUserRuleValidator;
         }
 
-        public async Task<Result> Handle(CreatePostCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(UpdatePostCommand request, CancellationToken cancellationToken)
         {
             var userId = _userAccessor.UserId;
 
             if (!userId.HasValue)
                 return Result.ValidationFailure(IdentityErrors.UserNotFound);
             
-            if (request.FolderId.HasValue && 
+            var post = await _unitOfWork.PostRepository.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (post is null)
+                return Result.ValidationFailure(PostErrors.NotFound);
+
+            if (request.FolderId.HasValue &&
                 await _postFolderExistsRuleValidator.IsBrokenAsync(new PostFolderExistsRule(request.FolderId.Value), cancellationToken))
                 return Result.ValidationFailure(_postFolderExistsRuleValidator.Error);
 
-            var passwordHashResult = request.Password is null 
-                ? null 
+            if (await _postOwnedByUserRuleValidator.IsBrokenAsync(new PostOwnedByUserRule(request.Id, userId.Value), cancellationToken))
+                return Result.ValidationFailure(_postOwnedByUserRuleValidator.Error);
+
+            var passwordHashResult = request.Password is null
+                ? null
                 : _passwordProtector.Create(request.Password);
 
             if (passwordHashResult is not null && passwordHashResult.IsFailure)
                 return Result.ValidationFailure(passwordHashResult.Errors);
             
-            var key = _blobKeyService.GeneratePostKey(userId.Value);
+            var deleteResult = await _storageService.DeleteAsync(post.BlobKey, cancellationToken);
+
+            if (deleteResult.IsFailure)
+                return Result.ValidationFailure(deleteResult.Errors);
+
+            var newBlobKey = _blobKeyService.GeneratePostKey(userId.Value);
             
             // todo: make it transactional
+            // delete old blob
             var uploadResult = await _storageService.UploadAsync(
-                key,
+                newBlobKey,
                 request.Content,
                 cancellationToken);
 
             if (uploadResult.IsFailure)
                 return Result.ValidationFailure(uploadResult.Errors);
 
-            var createPostResult = PostEntity.Create(
+            var updateResult = post.Update(
                 request.Name,
                 request.Category,
                 request.Tags,
                 passwordHashResult?.Data.Hash,
                 passwordHashResult?.Data.Salt,
                 request.ExpirationDate,
-                key,
+                newBlobKey,
                 userId.Value,
                 request.FolderId);
 
-            if (createPostResult.IsFailure)
-                return createPostResult;
+            if (updateResult.IsFailure)
+                return updateResult;
 
-            await _unitOfWork.PostRepository.CreateAsync(createPostResult.Data, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

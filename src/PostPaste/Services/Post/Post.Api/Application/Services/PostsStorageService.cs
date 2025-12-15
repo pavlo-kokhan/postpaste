@@ -1,10 +1,12 @@
-﻿using System.Text;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
 using Post.Api.Application.Constants.Errors;
 using Post.Api.Application.Options;
+using Post.Api.Application.Responses;
 using Post.Api.Application.Services.Abstract;
 using Shared.Result.Results;
 using Shared.Result.Results.Generic;
@@ -22,18 +24,26 @@ public class PostsStorageService : IPostsStorageService
         var storageOptions1 = storageOptions.Value;
         _blobContainerClient = blobServiceClient.GetBlobContainerClient(storageOptions1.PostsContainerName);
     }
+    
+    public async IAsyncEnumerable<BlobItemInfo> ListAllAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var blobItem in _blobContainerClient.GetBlobsAsync(cancellationToken: cancellationToken))
+        {
+            yield return new BlobItemInfo(blobItem.Name, blobItem.Properties.CreatedOn ?? DateTime.UtcNow);
+        }
+    }
 
-    public async Task<Result> UploadAsync(string key, Stream content, ContentType contentType, CancellationToken cancellationToken = default)
+    public async Task<Result> UploadAsync(string key, string content, CancellationToken cancellationToken = default)
     {
         var blob = _blobContainerClient.GetBlobClient(key);
-        var headers = new BlobHttpHeaders
-        {
-            ContentType = contentType.ToString()
-        };
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
         
         var response = await blob.UploadAsync(
-            content,
-            headers,
+            stream,
+            new BlobHttpHeaders
+            {
+                ContentType = ContentType.TextPlain.ToString()
+            },
             cancellationToken: cancellationToken);
         
         return response.GetRawResponse().IsError 
@@ -55,9 +65,8 @@ public class PostsStorageService : IPostsStorageService
 
         await using var contentStream = response.Value.Content;
         using var reader = new StreamReader(contentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        var content = await reader.ReadToEndAsync(cancellationToken);
 
-        return content;
+        return await reader.ReadToEndAsync(cancellationToken);
     }
 
     public async Task<Result> DeleteAsync(string key, CancellationToken cancellationToken = default)

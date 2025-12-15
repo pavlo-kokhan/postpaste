@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Post.Domain.ValidationExtensions;
 
-namespace Post.Api.Application.Queries.Post;
+namespace Post.Api.Application.Queries.Post.ById;
 
 public class PostQueryValidator : AbstractValidator<PostQuery>
 {

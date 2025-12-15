@@ -8,11 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Application\Commands\Post\Delete\" />
-      <Folder Include="Application\Commands\Post\Update\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
       <PackageReference Include="FluentEmail.Core" Version="3.0.2" />
       <PackageReference Include="FluentEmail.Smtp" Version="3.0.2" />

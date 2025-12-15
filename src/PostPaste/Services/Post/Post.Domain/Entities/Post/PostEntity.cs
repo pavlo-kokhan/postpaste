@@ -18,7 +18,6 @@ public class PostEntity : PersistenceEntity
         string? passwordHash,
         string? passwordSalt,
         DateTime? expirationDate,
-        string shortCode,
         string blobKey,
         int ownerId,
         int? folderId)
@@ -29,7 +28,6 @@ public class PostEntity : PersistenceEntity
         PasswordHash = passwordHash;
         PasswordSalt = passwordSalt;
         ExpirationDate = expirationDate;
-        ShortCode = shortCode;
         BlobKey = blobKey;
         OwnerId = ownerId;
         FolderId = folderId;
@@ -57,8 +55,6 @@ public class PostEntity : PersistenceEntity
     
     public DateTime? ExpirationDate { get; private set; }
     
-    public string ShortCode { get; private set; }
-    
     public string BlobKey { get; private set; }
     
     public int OwnerId { get; private set; }
@@ -72,7 +68,6 @@ public class PostEntity : PersistenceEntity
         string? passwordHash,
         string? passwordSalt,
         DateTime? expirationDate,
-        string shortCode,
         string blobKey,
         int ownerId,
         int? folderId) 
@@ -84,7 +79,6 @@ public class PostEntity : PersistenceEntity
                     passwordHash,
                     passwordSalt,
                     expirationDate,
-                    shortCode,
                     blobKey,
                     ownerId,
                     folderId));
@@ -96,7 +90,6 @@ public class PostEntity : PersistenceEntity
         string? passwordHash,
         string? passwordSalt,
         DateTime? expirationDate,
-        string shortCode,
         string blobKey,
         int ownerId,
         int? folderId)
@@ -107,7 +100,6 @@ public class PostEntity : PersistenceEntity
         PasswordHash = passwordHash;
         PasswordSalt = passwordSalt;
         ExpirationDate = expirationDate;
-        ShortCode = shortCode;
         BlobKey = blobKey;
         OwnerId = ownerId;
         FolderId = folderId;

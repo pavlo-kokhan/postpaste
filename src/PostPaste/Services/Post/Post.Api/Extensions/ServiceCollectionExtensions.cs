@@ -105,15 +105,15 @@ public static class ServiceCollectionExtensions
             })
             .AddScoped<IEmailService, SmtpEmailService>()
             .AddScoped<IJwtTokenService, JwtTokenService>()
-            .AddBusinessRules();
+            .AddSingleton<IBlobKeyService, BlobKeyService>();
     
     public static IServiceCollection AddHostedServices(this IServiceCollection services)
         => services
             .AddHostedService<InitialBackgroundService>();
     
-    private static IServiceCollection AddBusinessRules(this IServiceCollection services)
+    public static IServiceCollection AddBusinessRules(this IServiceCollection services)
         => services
-            .AddScoped<IBusinessRuleValidator<ConfirmedUserRule>, ConfirmedUserRule.Validator>()
             .AddScoped<IBusinessRuleValidator<UniqueFolderNameRule>, UniqueFolderNameRule.Validator>()
-            .AddScoped<IBusinessRuleValidator<PostFolderExistsRule>, PostFolderExistsRule.Validator>();
+            .AddScoped<IBusinessRuleValidator<PostFolderExistsRule>, PostFolderExistsRule.Validator>()
+            .AddScoped<IBusinessRuleValidator<PostOwnedByUserRule>, PostOwnedByUserRule.Validator>();
 }

@@ -35,6 +35,16 @@ public static class ValidationExtensions
         return Result<TEntity>.Success(entity);
     }
     
+    public static void Page<T>(this IRuleBuilderInitial<T, int> builderOptions)
+        => builderOptions
+            .NotEmpty()
+            .GreaterThanOrEqualTo(1);
+    
+    public static void PageSize<T>(this IRuleBuilderInitial<T, int> builderOptions)
+        => builderOptions
+            .NotEmpty()
+            .LessThanOrEqualTo(30);
+    
     public static void Id<T>(this IRuleBuilderInitial<T, int?> builderOptions, Func<T, int?> propSelector)
         => builderOptions.NotEmpty().When(t => propSelector(t) is not null);
 

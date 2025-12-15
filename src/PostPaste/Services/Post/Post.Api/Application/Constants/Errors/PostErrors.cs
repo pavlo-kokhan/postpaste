@@ -9,4 +9,6 @@ public static class PostErrors
     public static readonly Error PasswordRequired = Error.Create("PASSWORD_REQUIRED");
     
     public static readonly Error InvalidPassword = Error.Create("INVALID_PASSWORD");
+    
+    public static readonly Error Forbidden = Error.Create("POST_FORBIDDEN");
 }

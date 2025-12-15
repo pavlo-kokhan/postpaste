@@ -1,8 +1,7 @@
-﻿using LinqKit;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Post.Api.Application.Constants.Errors;
+using Post.Api.Application.Queries.Post.Extensions;
 using Post.Api.Application.Responses.Post;
 using Post.Api.Application.Responses.PostFolder;
 using Post.Api.Application.Responses.User;
@@ -10,7 +9,7 @@ using Post.Api.Application.Services.Abstract;
 using Post.Infrastructure.Persistence;
 using Shared.Result.Results.Generic;
 
-namespace Post.Api.Application.Queries.Post;
+namespace Post.Api.Application.Queries.Post.ById;
 
 public record PostQuery(int Id, string? Password) : IRequest<Result<PostResponseDto>>
 {
@@ -35,16 +34,7 @@ public record PostQuery(int Id, string? Password) : IRequest<Result<PostResponse
             var aggregatedPost = await _dbContext.Posts
                 .AsNoTracking()
                 .Where(p => p.Id == request.Id)
-                .LeftJoin(
-                    _dbContext.Users,
-                    p => p.OwnerId,
-                    u => u.Id,
-                    (p, u) => new { Post = p, User = u })
-                .LeftJoin(
-                    _dbContext.PostFolders,
-                    p => p.Post.FolderId,
-                    f => f.Id,
-                    (p, f) => new { p.Post, p.User, Folder = f })
+                .IncludeReferences(_dbContext.Users, _dbContext.PostFolders)
                 .FirstOrDefaultAsync(cancellationToken);
             
             if (aggregatedPost is null)
@@ -77,7 +67,9 @@ public record PostQuery(int Id, string? Password) : IRequest<Result<PostResponse
                 aggregatedPost.Post.IsProtected,
                 aggregatedPost.Post.ExpirationDate,
                 contentResult.Data,
-                new ShortUserResponseDto(aggregatedPost.User.Id, aggregatedPost.User.Email),
+                aggregatedPost.User is null 
+                    ? null 
+                    : new ShortUserResponseDto(aggregatedPost.User.Id, aggregatedPost.User.Email),
                 aggregatedPost.Folder is null 
                     ? null 
                     : new ShortPostFolderResponseDto(aggregatedPost.Folder.Id, aggregatedPost.Folder.Name))

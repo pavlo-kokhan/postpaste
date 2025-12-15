@@ -41,6 +41,7 @@ try
         .AddRepositories()
         .AddApplicationServices(builder.Configuration)
         .AddHostedServices()
+        .AddBusinessRules()
         .AddCors()
         .AddOpenApi(options =>
         {

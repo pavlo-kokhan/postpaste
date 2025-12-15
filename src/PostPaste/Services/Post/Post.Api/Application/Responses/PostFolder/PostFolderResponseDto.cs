@@ -7,4 +7,4 @@ namespace Post.Api.Application.Responses.PostFolder;
 public record PostFolderResponseDto(
     int Id,
     string Name,
-    ShortUserResponseDto User) : TimeRelatedResponseDto;
+    ShortUserResponseDto? User) : TimeRelatedResponseDto;

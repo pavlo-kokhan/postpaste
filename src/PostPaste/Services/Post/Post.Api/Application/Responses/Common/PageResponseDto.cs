@@ -1,3 +1,6 @@
 ﻿namespace Post.Api.Application.Responses.Common;
 
-public record PageResponseDto<T>(T Data, int Page, int PageSize, int TotalCount);
+public record PageResponseDto<T>(IReadOnlyCollection<T> Items, int TotalCount)
+{
+    public static readonly PageResponseDto<T> Empty = new([], 0);
+}

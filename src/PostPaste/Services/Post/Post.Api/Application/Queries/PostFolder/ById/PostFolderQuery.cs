@@ -1,14 +1,13 @@
-﻿using LinqKit;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Post.Api.Application.Constants.Errors;
-using Post.Api.Application.Responses.Post;
+using Post.Api.Application.Queries.PostFolder.Extensions;
 using Post.Api.Application.Responses.PostFolder;
 using Post.Api.Application.Responses.User;
 using Post.Infrastructure.Persistence;
 using Shared.Result.Results.Generic;
 
-namespace Post.Api.Application.Queries.PostFolder;
+namespace Post.Api.Application.Queries.PostFolder.ById;
 
 public record PostFolderQuery(int Id) : IRequest<Result<PostFolderResponseDto>>
 {
@@ -24,18 +23,14 @@ public record PostFolderQuery(int Id) : IRequest<Result<PostFolderResponseDto>>
             var postFolder = await _dbContext.PostFolders
                 .AsNoTracking()
                 .Where(f => f.Id == request.Id)
-                .LeftJoin(
-                    _dbContext.Users,
-                    f => f.OwnerId,
-                    u => u.Id,
-                    (f, u) => new { Folder = f, User = u })
+                .IncludeReferences(_dbContext.Users)
                 .Select(f => new PostFolderResponseDto(
-                    f.Folder.Id,
-                    f.Folder.Name,
-                    new ShortUserResponseDto(f.User.Id, f.User.Email))
+                    f.PostFolder.Id,
+                    f.PostFolder.Name,
+                    f.User == null ? null : new ShortUserResponseDto(f.User.Id, f.User.Email))
                 {
-                    CreatedAt = f.Folder.CreatedAt,
-                    UpdatedAt = f.Folder.UpdatedAt
+                    CreatedAt = f.PostFolder.CreatedAt,
+                    UpdatedAt = f.PostFolder.UpdatedAt
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
