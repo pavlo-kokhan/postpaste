@@ -1,4 +1,5 @@
-﻿using LinqKit;
+﻿using System.Linq.Expressions;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Post.Api.Application.Queries.Post.Projections;
 using Post.Domain.Entities.Post;
@@ -9,6 +10,8 @@ namespace Post.Api.Application.Queries.Post.Extensions;
 
 public static class PostQueryableExtensions
 {
+    
+    
     public static IQueryable<PostEntity> ApplyUserIdFilter(this IQueryable<PostEntity> query, int userId) 
         => query.Where(p => p.OwnerId == userId);
 
@@ -67,5 +70,27 @@ public static class PostQueryableExtensions
                 EF.Functions.ILike(p.Post.Category.Name, pattern) ||
                 p.Post.Tags.Any(t => EF.Functions.ILike(t, pattern)) ||
                 (p.Folder != null && EF.Functions.ILike(p.Folder.Name, pattern)));
+    }
+
+    public static IQueryable<PostWithReferences> ApplySort(
+        this IQueryable<PostWithReferences> query,
+        string? orderBy,
+        bool isAscending)
+    {
+        if (string.IsNullOrEmpty(orderBy))
+            return query;
+
+        IQueryable<PostWithReferences> Sort<TKey>(Expression<Func<PostWithReferences, TKey>> keySelector) 
+            => isAscending
+                ? query.OrderBy(keySelector).ThenBy(x => x.Post.Id)
+                : query.OrderByDescending(keySelector).ThenBy(x => x.Post.Id);
+
+        return orderBy.ToLowerInvariant() switch
+        {
+            "name" => Sort(x => x.Post.Name),
+            "createdat" => Sort(x => x.Post.CreatedAt),
+            "updatedat" => Sort(x => x.Post.UpdatedAt),
+            _ => Sort(x => x.Post.Id)
+        };
     }
 }
