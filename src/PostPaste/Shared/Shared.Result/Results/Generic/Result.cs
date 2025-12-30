@@ -27,11 +27,35 @@ public class Result<TData> : Result, IResult<TData>
     public new static Result<TData> ValidationFailure(IReadOnlyCollection<Error> errors) 
         => new(ResultStatus.ValidationError, errors);
     
+    public new static Result<TData> BadRequest(Error error) 
+        => new(ResultStatus.BadRequest, error);
+    
+    public new static Result<TData> BadRequest(IReadOnlyCollection<Error> errors) 
+        => new(ResultStatus.BadRequest, errors);
+    
+    public new static Result<TData> Unauthorized(Error error) 
+        => new(ResultStatus.Unauthorized, error);
+    
+    public new static Result<TData> Unauthorized(IReadOnlyCollection<Error> errors) 
+        => new(ResultStatus.Unauthorized, errors);
+    
+    public new static Result<TData> Forbidden(Error error) 
+        => new(ResultStatus.Forbidden, error);
+    
+    public new static Result<TData> Forbidden(IReadOnlyCollection<Error> errors) 
+        => new(ResultStatus.Forbidden, errors);
+    
     public new static Result<TData> NotFound(Error error) 
         => new(ResultStatus.NotFound, error);
     
     public new static Result<TData> NotFound(IReadOnlyCollection<Error> errors) 
         => new(ResultStatus.NotFound, errors);
+    
+    public new static Result<TData> Conflict(Error error) 
+        => new(ResultStatus.Conflict, error);
+    
+    public new static Result<TData> Conflict(IReadOnlyCollection<Error> errors) 
+        => new(ResultStatus.Conflict, errors);
     
     public new static Result<TData> InternalFailure(Error error) 
         => new(ResultStatus.InternalError, error);

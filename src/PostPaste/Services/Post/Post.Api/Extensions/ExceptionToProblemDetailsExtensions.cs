@@ -5,7 +5,10 @@ namespace Post.Api.Extensions;
 
 public static class ExceptionToProblemDetailsExtensions
 {
-    public static ProblemDetails ToProblemDetails(this Exception exception, bool includeExceptionDetails = false) 
+    public static ProblemDetails ToProblemDetails(this Exception exception, bool includeExceptionDetails = false)
+        => CreateProblemDetails(exception, includeExceptionDetails);
+    
+    private static ProblemDetails CreateProblemDetails(Exception exception, bool includeExceptionDetails)
         => new()
         {
             Status = StatusCodes.Status500InternalServerError,

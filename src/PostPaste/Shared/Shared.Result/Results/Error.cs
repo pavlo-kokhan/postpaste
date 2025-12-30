@@ -24,9 +24,6 @@ public class Error
     public static Error CreatePropertyValidationError(string code, string propertyName, string message = "Validation error.") 
         => new(code, message, null, propertyName);
     
-    public static Error CreateNotFoundError(string code, string message = "Not found error.")
-        => new(code, message);
-    
     public static Error CreateUnknownError(string code, string message = "Unknown error.", Exception? exception = null)
         => new(code, message, exception);
 }

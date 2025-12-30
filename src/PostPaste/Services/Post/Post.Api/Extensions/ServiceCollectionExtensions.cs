@@ -1,9 +1,11 @@
 ﻿using System.Reflection;
-using Azure.Storage.Blobs;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Azure;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Post.Api.Application.BackgroundServices;
 using Post.Api.Application.BusinessRules;
 using Post.Api.Application.BusinessRules.Abstract;
@@ -18,6 +20,48 @@ namespace Post.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddOpenTelemetry(
+        this IServiceCollection services, 
+        IConfiguration configuration,
+        IHostEnvironment environment)
+        => services
+            .AddOpenTelemetry()
+            .ConfigureResource(builder =>
+            {
+                builder.AddService(
+                    serviceName: environment.ApplicationName,
+                    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
+                    serviceInstanceId: Environment.MachineName);
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddAspNetCoreInstrumentation(options =>
+                {
+                    options.Filter = httpContext =>
+                    {
+                        var path = httpContext.Request.Path.Value?.ToLowerInvariant() ?? "";
+                        
+                        if (path.StartsWith("/scalar") || path.StartsWith("/openapi"))
+                            return false;
+                        
+                        return true;
+                    };
+
+                    options.RecordException = true;
+                });
+                tracing.AddHttpClientInstrumentation(o => o.RecordException = true);
+                tracing.AddEntityFrameworkCoreInstrumentation();
+                tracing.AddAzureMonitorTraceExporter(builder =>
+                {
+                    builder.ConnectionString = configuration["ApplicationInsights:ConnectionString"];
+                });
+
+                tracing.SetSampler(environment.IsDevelopment()
+                    ? new AlwaysOnSampler()
+                    : new ParentBasedSampler(new TraceIdRatioBasedSampler(0.2)));
+            })
+            .Services;
+    
     public static IServiceCollection AddIdentity(this IServiceCollection services)
         => services
             .AddIdentityCore<UserEntity>(builder =>

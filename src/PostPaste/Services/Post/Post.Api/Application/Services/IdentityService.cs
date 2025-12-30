@@ -53,9 +53,11 @@ public class IdentityService : IIdentityService
         if (!roleAssignmentResult.Succeeded)
             return Result.ValidationFailure(IdentityErrors.RoleAssignmentFailed);
 
-        var callbackUrl = await GenerateEmailConfirmationUrlAsync(userEntity);
-        
-        await _emailService.SendUserRegistrationConfirmationEmailAsync(userEntity.Email, callbackUrl, cancellationToken);
+        await _emailService.SendUserConfirmationEmailAsync(
+            email, 
+            userEntity.Id,
+            await _userManager.GenerateEmailConfirmationTokenAsync(userEntity),
+            cancellationToken);
 
         return Result.Success();
     }
@@ -76,9 +78,11 @@ public class IdentityService : IIdentityService
         if (await _userManager.IsEmailConfirmedAsync(userEntity))
             return Result.ValidationFailure(IdentityErrors.EmailAlreadyConfirmed);
 
-        var callbackUrl = await GenerateEmailConfirmationUrlAsync(userEntity);
-        
-        await _emailService.SendUserRegistrationConfirmationEmailAsync(email, callbackUrl, cancellationToken);
+        await _emailService.SendUserConfirmationEmailAsync(
+            email, 
+            userEntity.Id,
+            await _userManager.GenerateEmailConfirmationTokenAsync(userEntity),
+            cancellationToken);
 
         return Result.Success();
     }
@@ -143,19 +147,5 @@ public class IdentityService : IIdentityService
         return !result.Succeeded 
             ? Result<string>.ValidationFailure(IdentityErrors.UserConfirmationFailed) 
             : _emailUrlsOptions.LoginBaseUrl;
-    }
-
-    private async Task<string> GenerateEmailConfirmationUrlAsync(UserEntity userEntity)
-    {
-        var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
-        var encodedConfirmationToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
-        
-        var queryParameters = new Dictionary<string, string>
-        {
-            { "id", userEntity.Id.ToString() },
-            { "token", encodedConfirmationToken }
-        };
-        
-        return QueryHelpers.AddQueryString(_emailUrlsOptions.EmailConfirmationBaseUrl, queryParameters!);
     }
 }

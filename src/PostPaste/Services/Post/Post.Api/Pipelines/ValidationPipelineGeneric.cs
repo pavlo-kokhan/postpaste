@@ -26,8 +26,7 @@ public class ValidationPipelineGeneric<TRequest, TData> : IPipelineBehavior<TReq
         var validationResult = await validator.ValidateAsync(request, cancellationToken);
         
         if (!validationResult.IsValid)
-            return Result<TData>.Failure(
-                ResultStatus.ValidationError,
+            return Result<TData>.ValidationFailure(
                 validationResult.Errors
                     .Select(e => Error.CreatePropertyValidationError(
                         e.ErrorCode,

@@ -21,10 +21,7 @@ try
     
     builder.Host.UseSerilog();
 
-    builder.Services.AddApplicationInsightsTelemetry(options =>
-    {
-        options.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
-    });
+    builder.Services.AddOpenTelemetry(builder.Configuration, builder.Environment);
 
     builder
         .Services
