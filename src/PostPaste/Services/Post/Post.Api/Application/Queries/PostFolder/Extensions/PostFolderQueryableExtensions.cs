@@ -1,4 +1,5 @@
-﻿using LinqKit;
+﻿using System.Linq.Expressions;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Post.Api.Application.Queries.PostFolder.Projections;
 using Post.Domain.Entities.PostFolder;
@@ -39,5 +40,27 @@ public static class PostFolderQueryableExtensions
         
         return query
             .Where(p => EF.Functions.ILike(p.Name, pattern));
+    }
+    
+    public static IQueryable<PostFolderEntity> ApplySort(
+        this IQueryable<PostFolderEntity> query,
+        string? orderBy,
+        bool isAscending)
+    {
+        if (string.IsNullOrEmpty(orderBy))
+            return query;
+
+        IQueryable<PostFolderEntity> Sort<TKey>(Expression<Func<PostFolderEntity, TKey>> keySelector) 
+            => isAscending
+                ? query.OrderBy(keySelector).ThenBy(x => x.Id)
+                : query.OrderByDescending(keySelector).ThenBy(x => x.Id);
+
+        return orderBy.ToLowerInvariant() switch
+        {
+            "name" => Sort(x => x.Name),
+            "createdat" => Sort(x => x.CreatedAt),
+            "updatedat" => Sort(x => x.UpdatedAt),
+            _ => Sort(x => x.Id)
+        };
     }
 }

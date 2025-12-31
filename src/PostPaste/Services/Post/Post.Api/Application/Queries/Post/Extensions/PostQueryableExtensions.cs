@@ -67,9 +67,7 @@ public static class PostQueryableExtensions
         return query
             .Where(p => 
                 EF.Functions.ILike(p.Post.Name, pattern) ||
-                EF.Functions.ILike(p.Post.Category.Name, pattern) ||
-                p.Post.Tags.Any(t => EF.Functions.ILike(t, pattern)) ||
-                (p.Folder != null && EF.Functions.ILike(p.Folder.Name, pattern)));
+                EF.Functions.ILike(p.Post.Category.Name, pattern));
     }
 
     public static IQueryable<PostWithReferences> ApplySort(

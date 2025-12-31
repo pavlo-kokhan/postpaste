@@ -11,7 +11,13 @@ using Shared.Result.Results.Generic;
 
 namespace Post.Api.Application.Queries.PostFolder.ByUser;
 
-public record UserPostFoldersQuery(int UserId, int Page, int PageSize, string? Search)
+public record UserPostFoldersQuery(
+    int UserId,
+    int Page,
+    int PageSize,
+    string? Search,
+    string? OrderBy,
+    bool IsAscending)
     : IRequest<Result<PageResponseDto<ShortPostFolderResponseDto>>>
 {
     public class Handler : IRequestHandler<UserPostFoldersQuery, Result<PageResponseDto<ShortPostFolderResponseDto>>>
@@ -27,7 +33,7 @@ public record UserPostFoldersQuery(int UserId, int Page, int PageSize, string? S
                 .AsNoTracking()
                 .ApplyUserFilter(request.UserId)
                 .ApplySearch(request.Search)
-                .OrderByDescending(f => f.CreatedAt);
+                .ApplySort(request.OrderBy, request.IsAscending);
             
             var totalCount = await query.CountAsync(cancellationToken);
 

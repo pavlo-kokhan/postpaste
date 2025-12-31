@@ -27,12 +27,36 @@ public class PostFolderController : ControllerBase
         => (await _mediator.Send(new PostFolderQuery(id), cancellationToken)).ToActionResultWrapper();
     
     [HttpGet("own")]
-    public async Task<IActionResult> GetOwnAsync(int page, int pageSize, string? search, CancellationToken cancellationToken)
-        => (await _mediator.Send(new OwnPostFoldersQuery(page, pageSize, search), cancellationToken)).ToActionResultWrapper();
+    public async Task<IActionResult> GetOwnAsync(
+        int page, 
+        int pageSize, 
+        string? search,
+        string? orderBy,
+        bool isAscending = true,
+        CancellationToken cancellationToken = default)
+        => (await _mediator.Send(new OwnPostFoldersQuery(
+            page, 
+            pageSize, 
+            search,
+            orderBy,
+            isAscending), cancellationToken)).ToActionResultWrapper();
     
     [HttpGet("user/{userId:int}")]
-    public async Task<IActionResult> GetByUserAsync(int userId, int page, int pageSize, string? search, CancellationToken cancellationToken)
-        => (await _mediator.Send(new UserPostFoldersQuery(userId, page, pageSize, search), cancellationToken)).ToActionResultWrapper();
+    public async Task<IActionResult> GetByUserAsync(
+        int userId, 
+        int page, 
+        int pageSize, 
+        string? search,
+        string? orderBy,
+        bool isAscending = true,
+        CancellationToken cancellationToken = default)
+        => (await _mediator.Send(new UserPostFoldersQuery(
+            userId, 
+            page, 
+            pageSize, 
+            search,
+            orderBy,
+            isAscending), cancellationToken)).ToActionResultWrapper();
     
     [HttpPost]
     public async Task<IActionResult> CreateAsync(CreatePostFolderCommand request, CancellationToken cancellationToken)

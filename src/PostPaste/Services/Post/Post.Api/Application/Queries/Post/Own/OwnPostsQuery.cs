@@ -62,7 +62,7 @@ public record OwnPostsQuery(
                     CreatedAt = p.Post.CreatedAt,
                     UpdatedAt = p.Post.UpdatedAt
                 })
-                .ToArrayAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
             
             return new PageResponseDto<ShortPostResponseDto>(items, totalCount);
         }

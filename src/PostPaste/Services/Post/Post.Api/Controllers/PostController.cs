@@ -45,8 +45,23 @@ public class PostController : ControllerBase
             isAscending), cancellationToken)).ToActionResultWrapper();
     
     [HttpGet("user/{userId:int}")]
-    public async Task<IActionResult> GetOwnAsync(int userId,int? folderId, int page, int pageSize, string? search, CancellationToken cancellationToken)
-        => (await _mediator.Send(new UserPostsQuery(userId, folderId, page, pageSize, search), cancellationToken)).ToActionResultWrapper();
+    public async Task<IActionResult> GetOwnAsync(
+        int userId,
+        int? folderId,
+        int page,
+        int pageSize,
+        string? search,
+        string? orderBy,
+        bool isAscending = true,
+        CancellationToken cancellationToken = default)
+        => (await _mediator.Send(new UserPostsQuery(
+            userId,
+            folderId,
+            page,
+            pageSize,
+            search,
+            orderBy,
+            isAscending), cancellationToken)).ToActionResultWrapper();
 
     [HttpPost]
     public async Task<IActionResult> CreateAsync(CreatePostCommand request, CancellationToken cancellationToken)

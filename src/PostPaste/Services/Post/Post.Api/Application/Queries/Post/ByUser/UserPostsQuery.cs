@@ -9,7 +9,14 @@ using Shared.Result.Results.Generic;
 
 namespace Post.Api.Application.Queries.Post.ByUser;
 
-public record UserPostsQuery(int UserId, int? FolderId, int Page, int PageSize, string? Search)
+public record UserPostsQuery(
+    int UserId, 
+    int? FolderId, 
+    int Page, 
+    int PageSize, 
+    string? Search, 
+    string? OrderBy, 
+    bool IsAscending)
     : IRequest<Result<PageResponseDto<ShortPostResponseDto>>>
 {
     public class Handler : IRequestHandler<UserPostsQuery, Result<PageResponseDto<ShortPostResponseDto>>>
@@ -27,7 +34,7 @@ public record UserPostsQuery(int UserId, int? FolderId, int Page, int PageSize, 
                 .ApplyFolderFilter(request.FolderId)
                 .IncludeReferences(null, _dbContext.PostFolders)
                 .ApplySearch(request.Search)
-                .OrderBy(p => p.Post.CreatedAt);
+                .ApplySort(request.OrderBy, request.IsAscending);
 
             var totalCount = await query.CountAsync(cancellationToken);
 
@@ -45,7 +52,7 @@ public record UserPostsQuery(int UserId, int? FolderId, int Page, int PageSize, 
                     CreatedAt = p.Post.CreatedAt,
                     UpdatedAt = p.Post.UpdatedAt
                 })
-                .ToArrayAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
 
             return new PageResponseDto<ShortPostResponseDto>(items, totalCount);
         }
